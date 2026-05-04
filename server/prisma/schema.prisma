@@ -1,0 +1,64 @@
+// Schema відповідає компоненту "Prisma Client" з C4-діаграми сервера.
+// Описує три сутності: Department, User, ServiceRecord.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Department {
+  id             Int             @id @default(autoincrement())
+  name           String          @unique
+  description    String?
+  createdAt      DateTime        @default(now())
+  users          User[]
+  serviceRecords ServiceRecord[]
+
+  @@map("departments")
+}
+
+model User {
+  id             Int             @id @default(autoincrement())
+  fullName       String
+  email          String          @unique
+  phone          String?
+  position       String
+  isActive       Boolean         @default(true)
+  departmentId   Int
+  department     Department      @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  serviceRecords ServiceRecord[]
+
+  @@index([departmentId])
+  @@index([fullName])
+  @@map("users")
+}
+
+enum ServiceRecordType {
+  HIRE
+  PROMOTION
+  TRANSFER
+  DISMISSAL
+  NOTE
+}
+
+model ServiceRecord {
+  id           Int               @id @default(autoincrement())
+  userId       Int
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId Int?
+  department   Department?       @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  type         ServiceRecordType
+  note         String?
+  occurredAt   DateTime          @default(now())
+  createdAt    DateTime          @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@map("service_records")
+}
