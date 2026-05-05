@@ -1,6 +1,6 @@
 # Керування користувачами — клієнт-серверний застосунок
 
-Практичні роботи 04 («Архітектура та модульна організація»), 05 («Розширення архітектури станом застосунку» і «Централізоване керування станом бекенду» — Redux Toolkit)
+Практичні роботи 04 («Архітектура та модульна організація»), 05 («Розширення архітектури станом застосунку» «Централізоване керування станом бекенду» — Redux Toolkit).
 
 ## Структура
 
@@ -240,7 +240,27 @@ interface UsersState {
 - `usersReducer` — чиста функція без побічних ефектів; усі переходи описані явно через `switch` по `action.type`.
 - Контексти розділено на три (`state`, `dispatch`, `reload`), щоб компоненти, яким потрібен лише `dispatch`/`reload`, не перерендерювалися на зміни даних.
 
-### Відповідність вимогам ТЗ Пр05
+## Практична робота 05 Частина 2 — Redux Toolkit (окремий клієнт)
+
+Реалізовано в [client-redux/](client-redux) — повністю окремий проєкт із власним `package.json` і портом 5174. Backend і `client/` не змінено.
+
+- `configureStore` + два slice (`usersSlice` + `uiSlice`)
+- 5 async thunks (`fetchUsers`, `fetchUserById`, `createUser`, `updateUser`, `deleteUser`)
+- Окремий API-модуль (`api/httpClient.ts`, `api/usersApi.ts`)
+- Типізовані `useAppSelector` / `useAppDispatch`
+- Персистентність UI-параметрів (search, page, sort, order, selectedUserId) у `localStorage`
+- Інвалідація списку після CRUD через лічильник `dataVersion`
+- Індикація `loading` / `success` / `error` через `StatusCard`, `ErrorMessage` і disabled-кнопки
+
+Запуск:
+```bash
+cd client-redux
+npm install
+npm run dev   # http://localhost:5174
+```
+
+Деталі архітектури — у [client-redux/README.md](client-redux/README.md).
+### Відповідність вимогам ТЗ 
 
 - Стан як **окремий артефакт** — директорія `state/users/`.
 - Структура `{ data, ui, status }` — відображено в `UsersState`.
