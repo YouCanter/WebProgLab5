@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -16,6 +18,56 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - curs_network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: curs_server
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/usersdb?schema=public
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && npm start"
+    networks:
+      - curs_network
+
+  client-context:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: curs_client_context
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - server
+    networks:
+      - curs_network
+
+  client-redux:
+    build:
+      context: ./client-redux
+      dockerfile: Dockerfile
+    container_name: curs_client_redux
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    depends_on:
+      - server
+    networks:
+      - curs_network
 
 volumes:
   curs_pgdata:
+
+networks:
+  curs_network:
+    driver: bridge
